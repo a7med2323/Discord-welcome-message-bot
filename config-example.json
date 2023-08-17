@@ -1,0 +1,6 @@
+{
+    "serverId": "insert the server id the bot is on here",
+    "clientId" : "insert the bot id here",
+    "welcomechannel":"insert the text channel for welcome new members",
+    "devs" : ["insert the admin id here"]
+}
