@@ -1,8 +1,9 @@
 require('dotenv').config();
 const { loadImage , createCanvas, GlobalFonts} = require('@napi-rs/canvas');
-const { Client, IntentsBitField , ChannelType , AttachmentBuilder , Events } = require('discord.js');
+const { Client, IntentsBitField , ChannelType , AttachmentBuilder , Events , EmbedBuilder  } = require('discord.js');
 const eventHandler = require('./handlers/eventHandler');
 const { serverId }= require('../config.json');
+const config = require('../config.json');
 const path = require('path');
 
 const client = new Client({
@@ -19,18 +20,18 @@ client.on('ready',async()=>{
 client.user.setUsername('AGXY');
 GlobalFonts.registerFromPath(path.join(__dirname, '..', 'fonts', 'GONjURING.ttf'), 'conjuring');
 GlobalFonts.registerFromPath(path.join(__dirname, '..', 'fonts', 'Blazed.ttf'), 'blazed');
-console.log(client.guilds.cache.find((guild)=>guild.name === 'test bots'))
-guild = client.guilds.cache.find((guild)=>guild.name === 'test bots');
+console.log(client.guilds.cache.find((guild)=>guild.id === config.serverId))
+guild =  client.guilds.cache.find((guild)=>guild.id === config.serverId);
 //guild.emojis.create({attachment:`${path.join(__dirname,'..','amongus.gif')}`,name:'amongus'}).then(emoji=>console.log('created new emoji')).catch(console.error);
 //console.log(path.join(__dirname, '..', 'fonts', 'GONjURING.ttf'))
 });
 
-client.on(Events.MessageCreate, async (message) => {
+client.on(Events.GuildMemberAdd, async (member) => {
  
+console.log(member);
 
-if (message.content === '!profile') {
   
-  const author = await message.author.username;
+  const author =  member.user.username;
   
   const canvas = createCanvas(600,600);
   const ctx = canvas.getContext('2d');
@@ -59,13 +60,13 @@ if (message.content === '!profile') {
            //ctx.fillStyle = "red";
           //ctx.fillRect(0, 0, 150, 100);
               //const background = await canva.loadImage('./wallpaper.png');
- const useravatar = await message.author.displayAvatarURL({ extension: 'png' });
+ const useravatar =  member.displayAvatarURL({ extension: 'png' });
  const avatarload = await loadImage(useravatar);
  //const avatarload = await canva.loadImage('./wallpaper.png');
              //const backtopng = await background.encode('png');
  ctx.drawImage(avatarload, radius-100, radius-100, 200, 200);
  ctx.restore();
-  ctx.font = "20px blazed";
+  ctx.font = "28px blazed";
   var grd = ctx.createRadialGradient(75, 50, 5, 90, 60, 100);
   grd.addColorStop(0, "yellow");
   grd.addColorStop(1, "orange");
@@ -93,13 +94,27 @@ if (message.content === '!profile') {
     //const backtopng = await background.encode('png');
   ctx.drawImage(backgroundload, 9, 9, 200, 200);
   ctx.restore();*/
+  //canvas.toBuffer()
+  
+  const attachment =  new AttachmentBuilder(canvas.toBuffer('image/png'), { name: 'profile-image.png' });
+  const channel = await client.channels.cache.get(config.welcomechannel);
+  const iconurl = await guild.iconURL();
+  const welcomeEmbed = new EmbedBuilder()
+	.setColor('#653386')
+	.setTitle(`✦✦**Welcome to**✦✦ \n✦✰.｡${guild} \n ▬▬▬▬▬▬▬▬`)
+	.setThumbnail(iconurl)
+	.addFields(
+		{ name: '✰.｡.✵°✵welcome', value: member.user.username },
+	)
+  .setImage('attachment://profile-image.png')
+	.setFooter({ text: '▬▬▬▬▬▬▬▬\n@2023 AGXY STORE', iconURL: iconurl });
 
-  const attachment = new AttachmentBuilder(await canvas.encode('png'), { name: 'profile-image.png' });
-  const channel = await client.channels.cache.get('1103726199877939224');
-  await channel.send({ content:`>>> **Welcome to** ${message.guild} :amongus: \n  ${message.author}`,files: [attachment] });
+
+
+  await channel.send({ content:`${member.user}`,embeds:[welcomeEmbed] , files:[attachment] });
 
     
-  }
+  
 });
 client.login(process.env.TOKEN);
 
